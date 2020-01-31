@@ -16,3 +16,5 @@ BB_DISKMON_DIRS = "\
     ABORT,/tmp,10M,1K"
 CONF_VERSION = "1"
 
+#Remote debug
+IMAGE_INSTALL += "openocd"
