@@ -16,5 +16,6 @@ BB_DISKMON_DIRS = "\
     ABORT,/tmp,10M,1K"
 CONF_VERSION = "1"
 
-#Remote debug
+#this is the only addtion needed to build openocd into your image
+#unless you have a bbappend, it wil have a deafult config.
 IMAGE_INSTALL += "openocd"
