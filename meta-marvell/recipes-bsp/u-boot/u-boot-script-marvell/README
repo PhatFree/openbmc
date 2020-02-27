@@ -1,1 +1,0 @@
-This script will be compiled with u-boot mkimage, then included as /boot.scr in the RFS.

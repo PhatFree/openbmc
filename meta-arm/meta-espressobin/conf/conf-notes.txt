@@ -1,4 +1,3 @@
-please run script b4 bitbake,
 
 Common targets are:
      obmc-phosphor-image

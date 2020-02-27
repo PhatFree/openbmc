@@ -17,8 +17,6 @@ SRCREV = "e7c0ff40f1a7d7ce49583ba63283c1f71a436a58"
 
 S = "${WORKDIR}/git"
 
-inherit marvell-u-boot-localversion
-
 EXTRA_OEMAKE += "DEVICE_TREE=${UBOOT_DEVICE_TREE}"
 
-COMPATIBLE_MACHINE = "(armada37xx|armada70xx|armada80xx)"
+#COMPATIBLE_MACHINE = "(armada37xx|armada70xx|armada80xx)"

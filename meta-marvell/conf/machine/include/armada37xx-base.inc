@@ -2,11 +2,6 @@
 
 require conf/machine/include/arm/arch-arm64.inc
 
-# require conf/multilib.conf
-# MULTILIBS = "multilib:lib32"
-# DEFAULTTUNE_virtclass-multilib-lib32 = "armv8a-neon"
-# DEFAULTTUNE_virtclass-multilib-lib32 = "aarch64"
-
 
 MACHINE_ENDIANNESS ?= "le"
 
