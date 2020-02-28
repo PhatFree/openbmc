@@ -1,0 +1,122 @@
+diff --git a/tcl/target/arm/junoR2_linux.cfg b/tcl/target/arm/junoR2_linux.cfg
+new file mode 100644
+index 00000000..43befd1b
+--- /dev/null
++++ b/tcl/target/arm/junoR2_linux.cfg
+@@ -0,0 +1,88 @@
++# Arm JunoR2 Remote Debug reference Configuration
++# this config works under the condition that all cores are on, and NOT off, or a reduced power state that would make the core off, or un-responsive
++
++source [find target/swj-dp.tcl]
++
++reset_config trst_and_srst
++
++
++if { [info exists CHIPNAME] } {
++  set _CHIPNAME $CHIPNAME
++} else {
++  set _CHIPNAME junor2
++}
++
++
++# number of cores
++if { [info exists CORES] } {
++    set _cores $CORES
++} else {
++    set _cores 6
++}
++
++
++# Juno boots UEFI on the first A53, core 2
++if { [info exists BOOTCORE] } {
++    set _bootcore $BOOTCORE
++} else {
++    set _bootcore 2
++}
++
++
++# Main DAP, Both CPU & SCP on this dap
++if { [info exists DAP_TAPID] } {
++   set _DAP_TAPID $DAP_TAPID
++} else {
++   set _DAP_TAPID 0x5ba00477
++}
++
++
++# declare the TAPs
++# SCP 
++jtag newtap $_CHIPNAME scp.tap -irlen 4 -expected-id $_DAP_TAPID
++#Main CPU
++jtag newtap $_CHIPNAME tap -irlen 4 -expected-id $_DAP_TAPID
++
++
++# create the DAP
++# SCP
++dap create $_CHIPNAME.scp.dap -chain-position $_CHIPNAME.scp.tap
++#Main CPU
++dap create $_CHIPNAME.dap -chain-position $_CHIPNAME.tap
++
++
++# declare the 6 main application cores
++set _TARGETNAME $_CHIPNAME.cpu
++set _smp_command "target smp "
++
++# A72 Cluster 0
++set $_TARGETNAME.cti(0) 0x82020000
++set $_TARGETNAME.cti(1) 0x82120000
++# A53 Cluster 1
++set $_TARGETNAME.cti(2) 0x83020000
++set $_TARGETNAME.cti(3) 0x83120000
++set $_TARGETNAME.cti(4) 0x83220000
++set $_TARGETNAME.cti(5) 0x83320000
++
++for { set _core 0 } { $_core < $_cores } { incr _core } {
++    cti create cti$_core -dap $_CHIPNAME.dap -ap-num 1 -ctibase [set $_TARGETNAME.cti($_core)]
++    set _command "target create ${_TARGETNAME}$_core aarch64 \
++                         -dap $_CHIPNAME.dap -coreid $_core -cti cti$_core"
++    set _command "$_command -rtos hwthread"
++
++    if { $_core != $_bootcore } {
++        # non-boot core examination may fail # this should later be enabled
++        #set _command "$_command -defer-examine"
++        set _smp_command "$_smp_command ${_TARGETNAME}$_core"
++    } else {
++        # uncomment when "hawt" rtos is merged
++        set _smp_command "$_smp_command ${_TARGETNAME}$_core"
++    }
++    eval $_command
++}
++eval $_smp_command
++
++
++#declare the Juno SCP
++target create ${_TARGETNAME}.m3 cortex_m -dap $_CHIPNAME.scp.dap -ap-num 0
++
+diff --git a/tcl/target/arm/juno_RD_example.cfg b/tcl/target/arm/juno_RD_example.cfg
+new file mode 100644
+index 00000000..6e20ddab
+--- /dev/null
++++ b/tcl/target/arm/juno_RD_example.cfg
+@@ -0,0 +1,22 @@
++#this config is essentially a script to run openOCD remote debug in 1 line.
++#These componentes are mostly indepented
++
++#example remote debug, using Arm Juno R2 & DP Bus Blaster.
++#Usage, $ openocd -f juno_RD_example.cfg
++
++
++#export OPENOCD over network
++#0.0.0.0.0 will expose it to all available interfaces, this shouldn't be used on an unsecure network.
++bindto 0.0.0.0
++
++#adapter/interface to the target
++source [find interface/ftdi/dp_busblaster.cfg]
++
++#arm board supports SWJ
++#source [find target/swj-dp.tcl]
++
++#with Juno and Bus Blaster, 'jtag_rclk' doesn't seem to work.
++#staic set adpater speed works, rclk is preffered and should be used if possible
++adapter_khz 10000
++#our target board
++source [find target/arm/junoR2_linux.cfg]
